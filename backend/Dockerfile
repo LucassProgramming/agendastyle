@@ -2,14 +2,14 @@ FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
 
-#Copiar el backend dentro de /app
+# Copy the backend into /app
 COPY . .
 
 RUN chmod +x mvnw
-#Construye el .jar dentor del Docker
+# Build the JAR inside Docker
 RUN ./mvnw clean package -DskipTests
 
-#Segunda imagen para ejecutar java
+# Runtime image
 
 FROM eclipse-temurin:21-jre
 
