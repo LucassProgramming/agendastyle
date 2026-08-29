@@ -10,6 +10,7 @@ import com.agendastyle.backend.staff.exception.InvalidServiceSelectionException;
 import com.agendastyle.backend.client.exception.ClientEmailAlreadyExistsException;
 import com.agendastyle.backend.appointment.exception.AppointmentResourceNotFoundException;
 import com.agendastyle.backend.appointment.exception.InvalidAppointmentException;
+import com.agendastyle.backend.appointment.exception.AppointmentOverlapException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -40,5 +41,11 @@ public class ApiExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleInvalidAppointment(InvalidAppointmentException exception) {
         ApiErrorResponse error = new ApiErrorResponse(HttpStatus.BAD_REQUEST.value(),HttpStatus.BAD_REQUEST.getReasonPhrase(),exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    @ExceptionHandler(AppointmentOverlapException.class)
+    public ResponseEntity<ApiErrorResponse> handleAppointmentOverlap(AppointmentOverlapException exception) {
+        ApiErrorResponse error = new ApiErrorResponse(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT.getReasonPhrase(), exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }

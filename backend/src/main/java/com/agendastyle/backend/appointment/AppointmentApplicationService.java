@@ -4,6 +4,7 @@ import com.agendastyle.backend.appointment.dto.AppointmentResponse;
 import com.agendastyle.backend.appointment.dto.CreateAppointmentRequest;
 import com.agendastyle.backend.appointment.exception.AppointmentResourceNotFoundException;
 import com.agendastyle.backend.appointment.exception.InvalidAppointmentException;
+import com.agendastyle.backend.appointment.exception.AppointmentOverlapException;
 import com.agendastyle.backend.catalog.SalonService;
 import com.agendastyle.backend.catalog.SalonServiceRepository;
 import com.agendastyle.backend.client.Client;
@@ -60,6 +61,11 @@ public class AppointmentApplicationService {
         }
 
         LocalDateTime endDateTime = request.startDateTime().plusMinutes(service.getDurationMinutes());
+
+        boolean overlapExists = appointmentRepository.existsOverlappingAppointment(employee.getId(), request.startDateTime(), endDateTime, AppointmentStatus.CANCELLED);
+        if (overlapExists) {
+            throw new AppointmentOverlapException();
+        }
 
         Appointment appointment = new Appointment(
                 request.startDateTime(),
