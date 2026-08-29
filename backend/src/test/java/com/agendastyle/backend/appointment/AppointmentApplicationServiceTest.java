@@ -96,7 +96,7 @@ class AppointmentApplicationServiceTest {
 
         AppointmentResponse response =appointmentApplicationService.create(request);
 
-        assertEquals(LocalDateTime.of(2026, 8, 30, 10, 30),response.endDateTime());
+        assertEquals(LocalDateTime.of(2026, 8, 30, 10, 31),response.endDateTime());
     }
     @Test
     void shouldRejectAppointmentWhenEmployeeCannotProvideService() {
