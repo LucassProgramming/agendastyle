@@ -13,9 +13,14 @@ import com.agendastyle.backend.staff.Employee;
 import com.agendastyle.backend.staff.EmployeeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.agendastyle.backend.staff.EmployeeSchedule;
+import com.agendastyle.backend.staff.EmployeeScheduleRepository;
+import com.agendastyle.backend.appointment.exception.AppointmentOutsideWorkingHoursException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -25,12 +30,14 @@ public class AppointmentApplicationService {
     private final ClientRepository clientRepository;
     private final EmployeeRepository employeeRepository;
     private final SalonServiceRepository salonServiceRepository;
+    private final EmployeeScheduleRepository employeeScheduleRepository;
 
-    public AppointmentApplicationService(AppointmentRepository appointmentRepository, ClientRepository clientRepository, EmployeeRepository employeeRepository, SalonServiceRepository salonServiceRepository) {
+    public AppointmentApplicationService(AppointmentRepository appointmentRepository, ClientRepository clientRepository, EmployeeRepository employeeRepository, SalonServiceRepository salonServiceRepository, EmployeeScheduleRepository employeeScheduleRepository) {
         this.appointmentRepository = appointmentRepository;
         this.clientRepository = clientRepository;
         this.employeeRepository = employeeRepository;
         this.salonServiceRepository = salonServiceRepository;
+        this.employeeScheduleRepository = employeeScheduleRepository;
     }
 
     @Transactional
@@ -61,6 +68,7 @@ public class AppointmentApplicationService {
         }
 
         LocalDateTime endDateTime = request.startDateTime().plusMinutes(service.getDurationMinutes());
+        validateWorkingHours(employee.getId(), request.startDateTime(), endDateTime);
 
         boolean overlapExists = appointmentRepository.existsOverlappingAppointment(employee.getId(), request.startDateTime(), endDateTime, AppointmentStatus.CANCELLED);
         if (overlapExists) {
@@ -114,5 +122,24 @@ public class AppointmentApplicationService {
                 appointment.getEmployee().getId(),
                 appointment.getService().getId()
         );
+    }
+    private void validateWorkingHours(Long employeeId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        DayOfWeek dayOfWeek = startDateTime.getDayOfWeek();
+        LocalTime appointmentStart = startDateTime.toLocalTime();
+        LocalTime appointmentEnd = endDateTime.toLocalTime();
+
+        List<EmployeeSchedule> schedules = employeeScheduleRepository.findByEmployeeIdAndDayOfWeek(employeeId, dayOfWeek);
+
+        for (EmployeeSchedule schedule : schedules) {
+            boolean startsInsideSchedule = !appointmentStart.isBefore(schedule.getStartTime());
+            boolean endsInsideSchedule = !appointmentEnd.isAfter(schedule.getEndTime());
+            boolean sameDay = startDateTime.toLocalDate().equals(endDateTime.toLocalDate());
+
+            if (startsInsideSchedule && endsInsideSchedule && sameDay) {
+                return;
+            }
+        }
+
+        throw new AppointmentOutsideWorkingHoursException();
     }
 }

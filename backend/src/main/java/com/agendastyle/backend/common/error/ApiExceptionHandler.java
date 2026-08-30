@@ -11,6 +11,9 @@ import com.agendastyle.backend.client.exception.ClientEmailAlreadyExistsExceptio
 import com.agendastyle.backend.appointment.exception.AppointmentResourceNotFoundException;
 import com.agendastyle.backend.appointment.exception.InvalidAppointmentException;
 import com.agendastyle.backend.appointment.exception.AppointmentOverlapException;
+import com.agendastyle.backend.staff.exception.EmployeeNotFoundException;
+import com.agendastyle.backend.staff.exception.InvalidEmployeeScheduleException;
+import com.agendastyle.backend.appointment.exception.AppointmentOutsideWorkingHoursException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -47,5 +50,24 @@ public class ApiExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(HttpStatus.CONFLICT.value(), HttpStatus.CONFLICT.getReasonPhrase(), exception.getMessage());
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+    }
+    @ExceptionHandler(EmployeeNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleEmployeeNotFound(EmployeeNotFoundException exception) {
+        ApiErrorResponse error = new ApiErrorResponse(HttpStatus.NOT_FOUND.value(), HttpStatus.NOT_FOUND.getReasonPhrase(), exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(InvalidEmployeeScheduleException.class)
+    public ResponseEntity<ApiErrorResponse> handleInvalidEmployeeSchedule(InvalidEmployeeScheduleException exception) {
+        ApiErrorResponse error = new ApiErrorResponse(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.getReasonPhrase(), exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+    @ExceptionHandler(AppointmentOutsideWorkingHoursException.class)
+    public ResponseEntity<ApiErrorResponse> handleAppointmentOutsideWorkingHours(AppointmentOutsideWorkingHoursException exception) {
+        ApiErrorResponse error = new ApiErrorResponse(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.getReasonPhrase(), exception.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 }
