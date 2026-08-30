@@ -78,7 +78,7 @@ jobs:
         with:
            image-ref: agendastyle-backend:ci
            format: table
-           severity: HIGH,CRITICAÑ
+           severity: HIGH,CRITICAL
            ignore-unfixed: true
            exit-code: 1
       - name: Build frontend Docker image
