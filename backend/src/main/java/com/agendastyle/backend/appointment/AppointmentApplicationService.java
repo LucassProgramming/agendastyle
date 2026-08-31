@@ -162,5 +162,14 @@ public class AppointmentApplicationService {
 
         return responses;
     }
+    @Transactional
+    public AppointmentResponse cancelAppointment(Long appointmentId){
+        Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new AppointmentResourceNotFoundException("Appointment not found"));
+        if(appointment.getStatus() != AppointmentStatus.CONFIRMED){
+            throw new InvalidAppointmentException("Only confirmed appointments can be cancelled");
+        }
+        appointment.cancel();
+        return toResponse(appointment);
+    }
 
 }

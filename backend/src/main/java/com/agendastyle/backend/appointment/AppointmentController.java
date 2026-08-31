@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -31,5 +33,9 @@ public class AppointmentController {
     @GetMapping
     public ResponseEntity<List<AppointmentResponse>> findAll() {
         return ResponseEntity.ok(appointmentApplicationService.findAll());
+    }
+    @PatchMapping("/{appointmentId}/cancel")
+    public ResponseEntity<AppointmentResponse> cancelAppointment(@PathVariable Long appointmentId){
+        return ResponseEntity.ok(appointmentApplicationService.cancelAppointment(appointmentId));
     }
 }

@@ -109,4 +109,7 @@ public class Appointment {
     public SalonService getService() {
         return service;
     }
+    public void cancel(){
+        this.status = AppointmentStatus.CANCELLED;
+    }
 }

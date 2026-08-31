@@ -69,6 +69,8 @@ class AppointmentApplicationServiceTest {
 
     @Mock
     private Appointment secondAppointment;
+    @Mock
+    private Appointment appointment;
 
     @BeforeEach
     void setUp() {
@@ -342,5 +344,54 @@ class AppointmentApplicationServiceTest {
         assertEquals("Employee not found", exception.getMessage());
 
         verify(appointmentRepository, never()).findDailyAgenda(any(Long.class),any(LocalDateTime.class),any(LocalDateTime.class));
+    }
+    @Test
+    void shouldCancelConfirmedAppointment() {
+        LocalDateTime startDateTime = LocalDate.now().plusDays(1).atTime(10, 0);
+        LocalDateTime endDateTime = startDateTime.plusMinutes(30);
+
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+
+        when(appointment.getStatus()).thenReturn(AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED);
+        when(appointment.getId()).thenReturn(1L);
+        when(appointment.getStartDateTime()).thenReturn(startDateTime);
+        when(appointment.getEndDateTime()).thenReturn(endDateTime);
+        when(appointment.getClient()).thenReturn(client);
+        when(appointment.getEmployee()).thenReturn(employee);
+        when(appointment.getService()).thenReturn(service);
+
+        when(client.getId()).thenReturn(1L);
+        when(employee.getId()).thenReturn(1L);
+        when(service.getId()).thenReturn(2L);
+
+        AppointmentResponse response = appointmentApplicationService.cancelAppointment(1L);
+
+        assertEquals(AppointmentStatus.CANCELLED, response.status());
+
+        verify(appointment, times(1)).cancel();
+        // to check the JPA dirty checking
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+    @Test
+    void shouldRejectCancellationWhenAppointmentDoesNotExist() {
+        when(appointmentRepository.findById(999L)).thenReturn(Optional.empty());
+
+        AppointmentResourceNotFoundException exception = assertThrows(AppointmentResourceNotFoundException.class,() -> appointmentApplicationService.cancelAppointment(999L));
+
+        assertEquals("Appointment not found", exception.getMessage());
+
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+    @Test
+    void shouldRejectCancellationWhenAppointmentIsAlreadyCancelled() {
+        when(appointmentRepository.findById(1L)).thenReturn(Optional.of(appointment));
+        when(appointment.getStatus()).thenReturn(AppointmentStatus.CANCELLED);
+
+        InvalidAppointmentException exception = assertThrows(InvalidAppointmentException.class,() -> appointmentApplicationService.cancelAppointment(1L));
+
+        assertEquals("Only confirmed appointments can be cancelled", exception.getMessage());
+
+        verify(appointment, never()).cancel();
+        verify(appointmentRepository, never()).save(any(Appointment.class));
     }
 }
