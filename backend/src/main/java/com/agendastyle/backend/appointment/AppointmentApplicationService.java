@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
+import java.time.LocalDate;
 
 @Service
 public class AppointmentApplicationService {
@@ -142,4 +143,24 @@ public class AppointmentApplicationService {
 
         throw new AppointmentOutsideWorkingHoursException();
     }
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> findDailyAgenda(Long employeeId, LocalDate date) {
+        if (!employeeRepository.existsById(employeeId)) {
+            throw new AppointmentResourceNotFoundException("Employee not found");
+        }
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime startOfNextDay = date.plusDays(1).atStartOfDay();
+
+        List<Appointment> appointments = appointmentRepository.findDailyAgenda(employeeId, startOfDay, startOfNextDay);
+
+        List<AppointmentResponse> responses = new ArrayList<>();
+
+        for (Appointment appointment : appointments) {
+            responses.add(toResponse(appointment));
+        }
+
+        return responses;
+    }
+
 }

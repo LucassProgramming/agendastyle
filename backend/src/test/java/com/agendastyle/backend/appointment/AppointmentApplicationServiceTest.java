@@ -64,6 +64,11 @@ class AppointmentApplicationServiceTest {
     private EmployeeSchedule employeeSchedule;
 
     private AppointmentApplicationService appointmentApplicationService;
+    @Mock
+    private Appointment firstAppointment;
+
+    @Mock
+    private Appointment secondAppointment;
 
     @BeforeEach
     void setUp() {
@@ -285,5 +290,57 @@ class AppointmentApplicationServiceTest {
 
         assertEquals(endDateTime, response.endDateTime());
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
+    }
+    @Test
+    void shouldReturnEmployeeDailyAgendaOrderedByStartTime() {
+        LocalDate date = LocalDate.now().plusDays(1);
+
+        LocalDateTime startOfDay = date.atStartOfDay();
+        LocalDateTime startOfNextDay = date.plusDays(1).atStartOfDay();
+
+        LocalDateTime firstStart = date.atTime(9, 0);
+        LocalDateTime secondStart = date.atTime(11, 0);
+
+        when(employeeRepository.existsById(1L)).thenReturn(true);
+
+        when(appointmentRepository.findDailyAgenda(1L, startOfDay, startOfNextDay)).thenReturn(List.of(firstAppointment, secondAppointment));
+
+        when(client.getId()).thenReturn(1L);
+        when(employee.getId()).thenReturn(1L);
+        when(service.getId()).thenReturn(2L);
+
+        when(firstAppointment.getStartDateTime()).thenReturn(firstStart);
+        when(firstAppointment.getEndDateTime()).thenReturn(firstStart.plusMinutes(30));
+        when(firstAppointment.getStatus()).thenReturn(AppointmentStatus.CONFIRMED);
+        when(firstAppointment.getClient()).thenReturn(client);
+        when(firstAppointment.getEmployee()).thenReturn(employee);
+        when(firstAppointment.getService()).thenReturn(service);
+
+        when(secondAppointment.getStartDateTime()).thenReturn(secondStart);
+        when(secondAppointment.getEndDateTime()).thenReturn(secondStart.plusMinutes(30));
+        when(secondAppointment.getStatus()).thenReturn(AppointmentStatus.CONFIRMED);
+        when(secondAppointment.getClient()).thenReturn(client);
+        when(secondAppointment.getEmployee()).thenReturn(employee);
+        when(secondAppointment.getService()).thenReturn(service);
+
+        List<AppointmentResponse> responses = appointmentApplicationService.findDailyAgenda(1L, date);
+
+        assertEquals(2, responses.size());
+        assertEquals(firstStart, responses.get(0).startDateTime());
+        assertEquals(secondStart, responses.get(1).startDateTime());
+
+        verify(appointmentRepository, times(1)).findDailyAgenda(1L, startOfDay, startOfNextDay);
+    }
+    @Test
+    void shouldRejectDailyAgendaWhenEmployeeDoesNotExist() {
+        LocalDate date = LocalDate.now().plusDays(1);
+
+        when(employeeRepository.existsById(999L)).thenReturn(false);
+
+        AppointmentResourceNotFoundException exception = assertThrows(AppointmentResourceNotFoundException.class,() -> appointmentApplicationService.findDailyAgenda(999L, date));
+
+        assertEquals("Employee not found", exception.getMessage());
+
+        verify(appointmentRepository, never()).findDailyAgenda(any(Long.class),any(LocalDateTime.class),any(LocalDateTime.class));
     }
 }
