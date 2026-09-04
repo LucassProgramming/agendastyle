@@ -69,6 +69,7 @@ resource "aws_instance" "agendastyle" {
   ami                         = data.aws_ami.amazon_linux_2023.id
   instance_type               = var.instance_type
   key_name                    = data.aws_key_pair.agendastyle.key_name
+  iam_instance_profile        = aws_iam_instance_profile.agendastyle.name
   vpc_security_group_ids      = [aws_security_group.agendastyle.id]
   associate_public_ip_address = true
   user_data                   = file("${path.module}/user_data.sh")
@@ -83,4 +84,63 @@ resource "aws_instance" "agendastyle" {
     Name    = "agendastyle-server-tf"
     Project = "AgendaStyle"
   }
+
+}
+resource "aws_ecr_repository" "backend" {
+  name                 = "agendastyle-backend"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Project = "AgendaStyle"
+  }
+}
+
+resource "aws_ecr_repository" "frontend" {
+  name                 = "agendastyle-frontend"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+
+  tags = {
+    Project = "AgendaStyle"
+  }
+}
+resource "aws_iam_role" "ec2_ecr" {
+  name = "agendastyle-ec2-ecr-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+
+  tags = {
+    Project = "AgendaStyle"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_ecr_read_only" {
+  role       = aws_iam_role.ec2_ecr.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_instance_profile" "agendastyle" {
+  name = "agendastyle-ec2-profile"
+  role = aws_iam_role.ec2_ecr.name
 }
