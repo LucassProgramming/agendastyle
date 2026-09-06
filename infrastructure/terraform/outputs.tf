@@ -21,3 +21,7 @@ output "frontend_ecr_repository_url" {
   description = "ECR repository URL for the frontend"
   value       = aws_ecr_repository.frontend.repository_url
 }
+output "github_actions_role_arn" {
+  description = "IAM Role ARN used by GitHub Actions through OIDC"
+  value       = aws_iam_role.github_actions.arn
+}

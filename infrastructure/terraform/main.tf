@@ -144,3 +144,84 @@ resource "aws_iam_instance_profile" "agendastyle" {
   name = "agendastyle-ec2-profile"
   role = aws_iam_role.ec2_ecr.name
 }
+resource "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
+
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+
+  tags = {
+    Project = "AgendaStyle"
+  }
+}
+resource "aws_iam_role" "github_actions" {
+  name = "agendastyle-github-actions-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.github.arn
+        }
+
+        Action = "sts:AssumeRoleWithWebIdentity"
+
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+            "token.actions.githubusercontent.com:sub" = "repo:LucassProgramming@201976559/agendastyle@1344726885:ref:refs/heads/main"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Project = "AgendaStyle"
+  }
+}
+
+resource "aws_iam_role_policy" "github_actions_ecr" {
+  name = "agendastyle-github-actions-ecr"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Sid    = "GetECRAuthorizationToken"
+        Effect = "Allow"
+
+        Action = [
+          "ecr:GetAuthorizationToken"
+        ]
+
+        Resource = "*"
+      },
+      {
+        Sid    = "PushImagesToAgendaStyleRepositories"
+        Effect = "Allow"
+
+        Action = [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:BatchGetImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:PutImage"
+        ]
+
+        Resource = [
+          aws_ecr_repository.backend.arn,
+          aws_ecr_repository.frontend.arn
+        ]
+      }
+    ]
+  })
+}
