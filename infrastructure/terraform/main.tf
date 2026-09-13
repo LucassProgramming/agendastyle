@@ -52,13 +52,6 @@ resource "aws_vpc_security_group_ingress_rule" "frontend" {
   to_port           = 5173
 }
 
-resource "aws_vpc_security_group_ingress_rule" "backend" {
-  security_group_id = aws_security_group.agendastyle.id
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 8080
-  ip_protocol       = "tcp"
-  to_port           = 8080
-}
 
 resource "aws_vpc_security_group_egress_rule" "all" {
   security_group_id = aws_security_group.agendastyle.id
