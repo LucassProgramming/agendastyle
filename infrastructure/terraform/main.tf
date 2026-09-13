@@ -75,6 +75,10 @@ resource "aws_instance" "agendastyle" {
   user_data                   = file("${path.module}/user_data.sh")
   user_data_replace_on_change = true
 
+  lifecycle {
+    ignore_changes = [ami]
+  }
+
   root_block_device {
     volume_size = 16
     volume_type = "gp3"
@@ -221,6 +225,25 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
           aws_ecr_repository.backend.arn,
           aws_ecr_repository.frontend.arn
         ]
+      },
+      {
+        Sid    = "SendCommandToAgendaStyle"
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand"
+        ]
+        Resource = [
+          "arn:aws:ssm:${var.aws_region}::document/AWS-RunShellScript",
+          aws_instance.agendastyle.arn
+        ]
+      },
+      {
+        Sid    = "ReadCommandResult"
+        Effect = "Allow"
+        Action = [
+          "ssm:GetCommandInvocation"
+        ]
+        Resource = "*"
       }
     ]
   })
