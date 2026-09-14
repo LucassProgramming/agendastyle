@@ -1,5 +1,6 @@
 import type { Employee } from '../types/Employee'
 import ServicesSection from './ServicesSection'
+import SectionTitle from './SectionTitle'
 
 type EmployeesSectionProps = {
   employees: Employee[]
@@ -8,7 +9,7 @@ type EmployeesSectionProps = {
 function EmployeesSection({ employees }: EmployeesSectionProps) {
   return (
     <section>
-      <h2>Employees</h2>
+      <SectionTitle title="Employees" />
       {ServicesSection.length === 0 ? (
         <p>No services available</p>
       ) : (

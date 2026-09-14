@@ -1,4 +1,5 @@
 import type { SalonService } from '../types/SalonService'
+import SectionTitle from './SectionTitle'
 
 type ServicesSectionProps = {
   services: SalonService[]
@@ -7,7 +8,7 @@ type ServicesSectionProps = {
 function ServicesSection({ services }: ServicesSectionProps) {
   return (
     <section>
-      <h2>Services</h2>
+      <SectionTitle title="Services" />
 
       {services.length === 0 ? (
         <p>No services available.</p>

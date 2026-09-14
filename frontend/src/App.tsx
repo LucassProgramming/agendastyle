@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import Header from './components/Header.tsx'
-import SectionTitle from './components/SectionTitle.tsx'
 import Navigation from './components/Navigation'
 import ServicesSection from './components/ServicesSection'
 import EmployeesSection from './components/EmployeesSection'
