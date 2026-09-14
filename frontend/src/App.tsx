@@ -1,4 +1,11 @@
 import { useEffect, useState } from 'react'
+import Header from './components/Header.tsx'
+import SectionTitle from './components/SectionTitle.tsx'
+import Navigation from './components/Navigation'
+import ServicesSection from './components/ServicesSection'
+import EmployeesSection from './components/EmployeesSection'
+
+
 import './App.css'
 
 import { getServices } from './api/servicesApi'
@@ -7,12 +14,15 @@ import { getEmployees } from './api/employeesApi'
 import type { SalonService } from './types/SalonService'
 import type { Employee } from './types/Employee'
 
+
 function App() {
   const [services, setServices] = useState<SalonService[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [section, setSection] = useState<'services' | 'employees'>('services')
 
   useEffect(() => {
     async function loadData() {
@@ -41,37 +51,26 @@ function App() {
   }
 
   return (
+    <>
+      <Header
+        title = "AgendaStyle"
+        subtitle='Manage your salon appointments easily'
+      />
+
     <main>
-      <h1>AgendaStyle</h1>
+      <Navigation
+        section={section}
+        onSectionChange={setSection}
+      />
+    {section === 'services' && (
+      <ServicesSection services={services} />
+    )}
 
-      <section>
-        <h2>Services</h2>
-
-        {services.map((service) => (
-          <article key={service.id}>
-            <h3>{service.name}</h3>
-            <p>{service.description}</p>
-            <p>{service.durationMinutes} min</p>
-            <p>{service.price} €</p>
-          </article>
-        ))}
-      </section>
-
-      <section>
-        <h2>Employees</h2>
-
-        {employees.map((employee) => (
-          <article key={employee.id}>
-            <h3>
-              {employee.firstName} {employee.lastName}
-            </h3>
-
-            <p>{employee.email}</p>
-            <p>{employee.phone}</p>
-          </article>
-        ))}
-      </section>
+    {section === 'employees' && (
+      <EmployeesSection employees={employees} />
+    )}
     </main>
+  </>
   )
 }
 
