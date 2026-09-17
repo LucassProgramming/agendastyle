@@ -7,23 +7,33 @@ type ServicesSectionProps = {
 
 function ServicesSection({ services }: ServicesSectionProps) {
   return (
-    <section>
-      <SectionTitle title="Services" />
+  <section>
+    <SectionTitle title="Services" />
 
-      {services.length === 0 ? (
-        <p>No services available.</p>
-      ) : (
-        services.map((service) => (
-          <article key={service.id}>
-            <h3>{service.name}</h3>
+    {services.length === 0 ? (
+      <p>No services available.</p>
+    ) : (
+      <div className="card-grid">
+        {services.map((service) => (
+          <article className="card" key={service.id}>
+            <div className="card-header">
+              <h3>{service.name}</h3>
+              <span className="price">
+                {service.price.toFixed(2)} €
+              </span>
+            </div>
+
             <p>{service.description}</p>
-            <p>{service.durationMinutes} min</p>
-            <p>{service.price} €</p>
+
+            <div className="card-footer">
+              <span>{service.durationMinutes} min</span>
+            </div>
           </article>
-        ))
-      )}
-    </section>
-  )
+        ))}
+      </div>
+    )}
+  </section>
+)
 }
 
 export default ServicesSection
