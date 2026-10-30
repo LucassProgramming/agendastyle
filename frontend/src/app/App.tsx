@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 import Header from './components/Header.tsx'
 import Navigation from './components/Navigation'
-import ServicesSection from './components/ServicesSection'
-import EmployeesSection from './components/EmployeesSection'
+import ServicesSection from '../features/services/components/ServicesSection'
+import EmployeesSection from '../features/employees/components/EmployeesSection'
 
 
 import './App.css'
 
-import { getServices } from './api/servicesApi'
-import { getEmployees } from './api/employeesApi'
+import { getServices } from '../features/services/api/servicesApi'
+import { getEmployees } from '../features/employees/api/employeesApi'
 
-import type { SalonService } from './types/SalonService'
-import type { Employee } from './types/Employee'
+import type { SalonService } from '../features/services/types/SalonService'
+import type { Employee } from '../features/employees/types/Employee'
 
 
 function App() {

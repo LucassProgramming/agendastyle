@@ -129,6 +129,8 @@ Using Terraform allows me to keep the infrastructure configuration in code inste
 
 ## Local Development
 
+The following commands are intended for Bash on Ubuntu and start from the repository root.
+
 ### Requirements
 
 - Docker
@@ -137,14 +139,18 @@ Using Terraform allows me to keep the infrastructure configuration in code inste
 Create the local environment file:
 
 ```bash
-cp .env.example .env
+if [ ! -f .env ]; then cp .env.example .env; fi
 ```
 
 Start the application:
 
 ```bash
+docker volume create agendastyle-postgres-data
 docker compose up --build
 ```
+
+The local Compose configuration uses this external PostgreSQL volume. Creating it
+again preserves any existing data.
 
 Frontend:
 
@@ -159,6 +165,38 @@ http://localhost:8080
 ```
 
 In the local environment, the backend port is exposed directly to make development and testing easier.
+
+### Frontend development on Ubuntu
+
+Install Node.js 24 and npm, matching CI. From the repository root:
+
+```bash
+cd frontend
+npm ci
+if [ ! -f .env ]; then cp .env.example .env; fi
+npm run dev
+```
+
+The example environment points to the backend at `http://localhost:8080`, which
+must be running separately. Run these checks from the frontend directory:
+
+```bash
+npm run lint
+npm run build
+```
+
+### Backend checks on Ubuntu
+
+Install JDK 21, matching CI. From the repository root:
+
+```bash
+cd backend
+chmod +x mvnw
+./mvnw clean verify
+```
+
+Maven is provided by the wrapper. Database connection settings are defined in
+[application.properties](backend/src/main/resources/application.properties).
 
 ## Production Deployment
 
@@ -207,6 +245,8 @@ Some security-related improvements already included in the project are:
 - AWS permissions are limited to the resources needed by the project
 
 ## Documentation
+
+- [Project structure and organization](docs/project-structure.md)
 
 More detailed notes about the infrastructure and deployment process can be found in:
 

@@ -1,5 +1,5 @@
 import type { SalonService } from '../types/SalonService'
-import SectionTitle from './SectionTitle'
+import SectionTitle from '../../../shared/components/SectionTitle'
 
 type ServicesSectionProps = {
   services: SalonService[]

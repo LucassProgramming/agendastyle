@@ -1,5 +1,5 @@
 import type { Employee } from '../types/Employee'
-import SectionTitle from './SectionTitle'
+import SectionTitle from '../../../shared/components/SectionTitle'
 
 type EmployeesSectionProps = {
   employees: Employee[]
