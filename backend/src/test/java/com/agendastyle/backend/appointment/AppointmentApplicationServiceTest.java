@@ -132,6 +132,42 @@ class AppointmentApplicationServiceTest {
     }
 
     @Test
+    void shouldRejectAppointmentWhenServiceDoesNotExist() {
+        LocalDateTime startDateTime = LocalDate.now().plusDays(1).atTime(11, 0);
+        CreateAppointmentRequest request = new CreateAppointmentRequest(1L, 1L, 999L, startDateTime, null);
+
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(salonServiceRepository.findById(999L)).thenReturn(Optional.empty());
+
+        AppointmentResourceNotFoundException exception = assertThrows(
+                AppointmentResourceNotFoundException.class,
+                () -> appointmentApplicationService.create(request));
+
+        assertEquals("Service not found", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
+    @Test
+    void shouldRejectAppointmentWhenServiceIsInactive() {
+        LocalDateTime startDateTime = LocalDate.now().plusDays(1).atTime(11, 0);
+        CreateAppointmentRequest request = new CreateAppointmentRequest(1L, 1L, 2L, startDateTime, null);
+
+        when(clientRepository.findById(1L)).thenReturn(Optional.of(client));
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(employee));
+        when(salonServiceRepository.findById(2L)).thenReturn(Optional.of(service));
+        when(employee.isActive()).thenReturn(true);
+        when(service.isActive()).thenReturn(false);
+
+        InvalidAppointmentException exception = assertThrows(
+                InvalidAppointmentException.class,
+                () -> appointmentApplicationService.create(request));
+
+        assertEquals("The selected service is not active", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
+    @Test
     void shouldRejectAppointmentInThePast() {
         LocalDateTime startDateTime = LocalDateTime.now().minusDays(1);
 
