@@ -1,6 +1,5 @@
 package com.agendastyle.backend.staff;
 
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.agendastyle.backend.catalog.SalonService;
 import com.agendastyle.backend.catalog.SalonServiceRepository;
+import com.agendastyle.backend.common.validation.EmailAddress;
 import com.agendastyle.backend.staff.dto.CreateEmployeeRequest;
 import com.agendastyle.backend.staff.dto.EmployeeResponse;
 
@@ -29,14 +29,15 @@ public class EmployeeApplicationService{
     }
     @Transactional
     public EmployeeResponse create(CreateEmployeeRequest request){
-        if(employeeRepository.existsByEmail(request.email())){
-            throw new EmployeeEmailAlreadyExistsException(request.email());
+        String normalizedEmail = EmailAddress.normalize(request.email());
+        if(employeeRepository.existsByEmailIgnoreCase(normalizedEmail)){
+            throw new EmployeeEmailAlreadyExistsException(normalizedEmail);
         }
         Set<SalonService> services = new HashSet<>(salonServiceRepository.findAllById(request.serviceIds()));
         if (services.size() != request.serviceIds().size()) {
             throw new InvalidServiceSelectionException();
         }
-        Employee employee = new Employee(request.firstName(), request.lastName(), request.phone(), request.email());
+        Employee employee = new Employee(request.firstName(), request.lastName(), request.phone(), normalizedEmail);
         employee.assignServices(services);
         Employee savedEmployee = employeeRepository.save(employee);
 

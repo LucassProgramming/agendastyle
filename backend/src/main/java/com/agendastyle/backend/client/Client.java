@@ -1,5 +1,6 @@
 package com.agendastyle.backend.client;
 
+import com.agendastyle.backend.common.validation.EmailAddress;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -39,7 +40,7 @@ public class Client {
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
-        this.email = email;
+        this.email = EmailAddress.normalize(email);
         this.registrationDate = LocalDateTime.now();
     }
 

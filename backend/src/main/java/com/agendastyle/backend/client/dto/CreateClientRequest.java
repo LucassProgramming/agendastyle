@@ -1,6 +1,6 @@
 package com.agendastyle.backend.client.dto;
 
-import jakarta.validation.constraints.Email;
+import com.agendastyle.backend.common.validation.ValidEmail;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -19,8 +19,7 @@ public record CreateClientRequest(
         String phone,
 
         @NotBlank
-        @Email
-        @Size(max = 150)
+        @ValidEmail
         String email
 
 ) {

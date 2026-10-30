@@ -1,4 +1,5 @@
 package com.agendastyle.backend.staff;
+import com.agendastyle.backend.common.validation.EmailAddress;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,7 +54,7 @@ public class Employee{
         this.firstName = firstName;
         this.lastName = lastName;
         this.phone = phone;
-        this.email = email;
+        this.email = EmailAddress.normalize(email);
     }
     public Long getId() {
         return id;

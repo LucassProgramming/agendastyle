@@ -3,6 +3,7 @@ package com.agendastyle.backend.client;
 import com.agendastyle.backend.client.dto.ClientResponse;
 import com.agendastyle.backend.client.dto.CreateClientRequest;
 import com.agendastyle.backend.client.exception.ClientEmailAlreadyExistsException;
+import com.agendastyle.backend.common.validation.EmailAddress;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,16 +21,17 @@ public class ClientApplicationService {
 
     @Transactional
     public ClientResponse create(CreateClientRequest request) {
+        String normalizedEmail = EmailAddress.normalize(request.email());
 
-        if (clientRepository.existsByEmail(request.email())) {
-            throw new ClientEmailAlreadyExistsException(request.email());
+        if (clientRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            throw new ClientEmailAlreadyExistsException(normalizedEmail);
         }
 
         Client client = new Client(
                 request.firstName(),
                 request.lastName(),
                 request.phone(),
-                request.email()
+                normalizedEmail
         );
 
         Client savedClient = clientRepository.save(client);
