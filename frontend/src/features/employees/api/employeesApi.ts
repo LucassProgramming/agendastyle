@@ -1,13 +1,32 @@
-import type { Employee } from '../types/Employee'
-
-const API_URL = `${import.meta.env.VITE_API_URL}/api/v1/employees`
+import { apiRequest } from '../../../shared/api/http'
+import type {
+  CreateEmployee,
+  CreateEmployeeSchedule,
+  Employee,
+  EmployeeSchedule,
+} from '../types/Employee'
 
 export async function getEmployees(): Promise<Employee[]> {
-  const response = await fetch(API_URL)
+  return apiRequest<Employee[]>('/api/v1/employees')
+}
 
-  if (!response.ok) {
-    throw new Error('Failed to load employees')
-  }
+export async function createEmployee(employee: CreateEmployee): Promise<Employee> {
+  return apiRequest<Employee>('/api/v1/employees', {
+    method: 'POST',
+    body: JSON.stringify(employee),
+  })
+}
 
-  return response.json()
+export async function getEmployeeSchedules(employeeId: number): Promise<EmployeeSchedule[]> {
+  return apiRequest<EmployeeSchedule[]>(`/api/v1/employees/${employeeId}/schedules`)
+}
+
+export async function createEmployeeSchedule(
+  employeeId: number,
+  schedule: CreateEmployeeSchedule,
+): Promise<EmployeeSchedule> {
+  return apiRequest<EmployeeSchedule>(`/api/v1/employees/${employeeId}/schedules`, {
+    method: 'POST',
+    body: JSON.stringify(schedule),
+  })
 }

@@ -1,7 +1,19 @@
 type SectionTitleProps = {
-    title: string
+  eyebrow?: string
+  title: string
+  description?: string
 }
-function SectionTitle({title}: SectionTitleProps){
-    return <h2>{title}</h2>
+
+function SectionTitle({ eyebrow, title, description }: SectionTitleProps) {
+  return (
+    <div className="section-heading">
+      <div>
+        {eyebrow && <span className="eyebrow">{eyebrow}</span>}
+        <h2>{title}</h2>
+        {description && <p>{description}</p>}
+      </div>
+    </div>
+  )
 }
+
 export default SectionTitle

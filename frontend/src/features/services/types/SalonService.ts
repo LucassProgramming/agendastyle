@@ -6,3 +6,10 @@ export interface SalonService {
   price: number
   active: boolean
 }
+
+export type CreateSalonService = {
+  name: string
+  description: string
+  durationMinutes: number
+  price: number
+}
