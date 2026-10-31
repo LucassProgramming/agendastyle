@@ -1,4 +1,5 @@
 package com.agendastyle.backend.staff;
+import com.agendastyle.backend.auth.UserAccount;
 import com.agendastyle.backend.common.validation.EmailAddress;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,6 +16,8 @@ import com.agendastyle.backend.catalog.SalonService;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
 
 @Entity
 @Table(name =  "employees")
@@ -46,6 +49,10 @@ public class Employee{
             inverseJoinColumns = @JoinColumn(name = "service_id")
     )
     private Set<SalonService> services = new HashSet<>();
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_account_id", unique = true)
+    private UserAccount userAccount;
 
     protected Employee(){
 
@@ -84,5 +91,11 @@ public class Employee{
     }
     public void assignServices(Set<SalonService> services) {
     this.services.addAll(services);
+    }
+    public UserAccount getUserAccount() {
+        return userAccount;
+    }
+    public void linkUserAccount(UserAccount userAccount) {
+        this.userAccount = userAccount;
     }
 }

@@ -1,5 +1,6 @@
 package com.agendastyle.backend.client;
 
+import com.agendastyle.backend.auth.UserAccount;
 import com.agendastyle.backend.common.validation.EmailAddress;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,6 +8,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 
 import java.time.LocalDateTime;
 
@@ -32,6 +36,10 @@ public class Client {
 
     @Column(name = "registration_date", nullable = false, updatable = false)
     private LocalDateTime registrationDate;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_account_id", unique = true)
+    private UserAccount userAccount;
 
     protected Client() {
     }
@@ -66,5 +74,13 @@ public class Client {
 
     public LocalDateTime getRegistrationDate() {
         return registrationDate;
+    }
+
+    public UserAccount getUserAccount() {
+        return userAccount;
+    }
+
+    public void linkUserAccount(UserAccount userAccount) {
+        this.userAccount = userAccount;
     }
 }
