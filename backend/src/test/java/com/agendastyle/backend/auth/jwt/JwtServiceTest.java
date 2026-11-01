@@ -2,15 +2,12 @@ package com.agendastyle.backend.auth.jwt;
 
 import com.agendastyle.backend.auth.Role;
 import org.junit.jupiter.api.Test;
-import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;
-import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.Clock;
+import java.time.ZoneOffset;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,8 +24,9 @@ class JwtServiceTest {
         JwtService jwtService = new JwtService(SECRET, Duration.ofHours(1));
         Instant beforeGeneration = Instant.now();
 
-        Jwt jwt = decoder(SECRET).decode(jwtService.generateToken("ana@example.com", Role.CLIENTE));
+        Jwt jwt = jwtService.parseToken(jwtService.generateToken("ana@example.com", Role.CLIENTE));
 
+        assertEquals("HS256", jwt.getHeaders().get("alg"));
         assertEquals("ana@example.com", jwt.getSubject());
         assertEquals("CLIENTE", jwt.getClaimAsString("role"));
         assertTrue(!jwt.getIssuedAt().isBefore(beforeGeneration.minusSeconds(1)));
@@ -41,7 +39,17 @@ class JwtServiceTest {
         JwtService jwtService = new JwtService(SECRET, Duration.ofHours(1));
         String token = jwtService.generateToken("ana@example.com", Role.CLIENTE);
 
-        assertThrows(JwtException.class, () -> decoder(DIFFERENT_SECRET).decode(token));
+        JwtService differentJwtService = new JwtService(DIFFERENT_SECRET, Duration.ofHours(1));
+        assertThrows(JwtException.class, () -> differentJwtService.parseToken(token));
+    }
+
+    @Test
+    void shouldRejectExpiredToken() {
+        Clock pastClock = Clock.fixed(Instant.now().minus(Duration.ofHours(2)), ZoneOffset.UTC);
+        JwtService jwtService = new JwtService(SECRET, Duration.ofHours(1), pastClock);
+        String token = jwtService.generateToken("ana@example.com", Role.CLIENTE);
+
+        assertThrows(JwtException.class, () -> jwtService.parseToken(token));
     }
 
     @Test
@@ -53,10 +61,5 @@ class JwtServiceTest {
     void shouldRejectShortSecret() {
         String shortSecret = Base64.getEncoder().encodeToString("too-short".getBytes());
         assertThrows(IllegalStateException.class, () -> new JwtService(shortSecret, Duration.ofHours(1)));
-    }
-
-    private NimbusJwtDecoder decoder(String encodedSecret) {
-        SecretKey secretKey = new SecretKeySpec(Base64.getDecoder().decode(encodedSecret), "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(secretKey).macAlgorithm(MacAlgorithm.HS256).build();
     }
 }

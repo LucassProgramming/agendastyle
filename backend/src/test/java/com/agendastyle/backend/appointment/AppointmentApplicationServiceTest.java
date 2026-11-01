@@ -430,4 +430,53 @@ class AppointmentApplicationServiceTest {
         verify(appointment, never()).cancel();
         verify(appointmentRepository, never()).save(any(Appointment.class));
     }
+
+    @Test
+    void shouldReturnOnlyAppointmentsLinkedToAuthenticatedClient() {
+        LocalDateTime startDateTime = LocalDate.now().plusDays(1).atTime(10, 0);
+        when(appointmentRepository.findByClientAccountEmail("ana@example.com")).thenReturn(List.of(appointment));
+        stubAppointmentResponse(appointment, startDateTime);
+
+        List<AppointmentResponse> responses = appointmentApplicationService.findAppointmentsForClient("  ANA@Example.COM ");
+
+        assertEquals(1, responses.size());
+        assertEquals(1L, responses.get(0).clientId());
+        verify(appointmentRepository).findByClientAccountEmail("ana@example.com");
+    }
+
+    @Test
+    void shouldCancelAppointmentOwnedByAuthenticatedClient() {
+        LocalDateTime startDateTime = LocalDate.now().plusDays(1).atTime(10, 0);
+        when(appointmentRepository.findByIdAndClientAccountEmail(1L, "ana@example.com")).thenReturn(Optional.of(appointment));
+        stubAppointmentResponse(appointment, startDateTime);
+        when(appointment.getStatus()).thenReturn(AppointmentStatus.CONFIRMED, AppointmentStatus.CANCELLED);
+
+        AppointmentResponse response = appointmentApplicationService.cancelClientAppointment(1L, "ana@example.com");
+
+        assertEquals(AppointmentStatus.CANCELLED, response.status());
+        verify(appointment).cancel();
+    }
+
+    @Test
+    void shouldHideAppointmentThatDoesNotBelongToAuthenticatedClient() {
+        when(appointmentRepository.findByIdAndClientAccountEmail(1L, "ana@example.com")).thenReturn(Optional.empty());
+
+        AppointmentResourceNotFoundException exception = assertThrows(AppointmentResourceNotFoundException.class, () -> appointmentApplicationService.cancelClientAppointment(1L, "ana@example.com"));
+
+        assertEquals("Appointment not found", exception.getMessage());
+        verify(appointment, never()).cancel();
+    }
+
+    private void stubAppointmentResponse(Appointment target, LocalDateTime startDateTime) {
+        when(target.getId()).thenReturn(1L);
+        when(target.getStartDateTime()).thenReturn(startDateTime);
+        when(target.getEndDateTime()).thenReturn(startDateTime.plusMinutes(30));
+        when(target.getStatus()).thenReturn(AppointmentStatus.CONFIRMED);
+        when(target.getClient()).thenReturn(client);
+        when(target.getEmployee()).thenReturn(employee);
+        when(target.getService()).thenReturn(service);
+        when(client.getId()).thenReturn(1L);
+        when(employee.getId()).thenReturn(1L);
+        when(service.getId()).thenReturn(2L);
+    }
 }

@@ -6,8 +6,25 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
+
+    @Query("""
+        SELECT a
+        FROM Appointment a
+        WHERE LOWER(a.client.userAccount.email) = LOWER(:email)
+        ORDER BY a.startDateTime DESC
+        """)
+    List<Appointment> findByClientAccountEmail(@Param("email") String email);
+
+    @Query("""
+        SELECT a
+        FROM Appointment a
+        WHERE a.id = :appointmentId
+        AND LOWER(a.client.userAccount.email) = LOWER(:email)
+        """)
+    Optional<Appointment> findByIdAndClientAccountEmail(@Param("appointmentId") Long appointmentId, @Param("email") String email);
 
     @Query("""
         SELECT COUNT(a) > 0

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.agendastyle.backend.staff.EmployeeSchedule;
 import com.agendastyle.backend.staff.EmployeeScheduleRepository;
 import com.agendastyle.backend.appointment.exception.AppointmentOutsideWorkingHoursException;
+import com.agendastyle.backend.common.validation.EmailAddress;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -165,6 +166,21 @@ public class AppointmentApplicationService {
     @Transactional
     public AppointmentResponse cancelAppointment(Long appointmentId){
         Appointment appointment = appointmentRepository.findById(appointmentId).orElseThrow(() -> new AppointmentResourceNotFoundException("Appointment not found"));
+        return cancel(appointment);
+    }
+
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> findAppointmentsForClient(String email) {
+        return appointmentRepository.findByClientAccountEmail(EmailAddress.normalize(email)).stream().map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public AppointmentResponse cancelClientAppointment(Long appointmentId, String email) {
+        Appointment appointment = appointmentRepository.findByIdAndClientAccountEmail(appointmentId, EmailAddress.normalize(email)).orElseThrow(() -> new AppointmentResourceNotFoundException("Appointment not found"));
+        return cancel(appointment);
+    }
+
+    private AppointmentResponse cancel(Appointment appointment) {
         if(appointment.getStatus() != AppointmentStatus.CONFIRMED){
             throw new InvalidAppointmentException("Only confirmed appointments can be cancelled");
         }
