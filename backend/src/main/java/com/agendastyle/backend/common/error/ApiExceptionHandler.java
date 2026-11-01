@@ -2,6 +2,7 @@ package com.agendastyle.backend.common.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -17,6 +18,12 @@ import com.agendastyle.backend.appointment.exception.AppointmentOutsideWorkingHo
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiErrorResponse> handleAuthentication(AuthenticationException exception) {
+        ApiErrorResponse error = new ApiErrorResponse(HttpStatus.UNAUTHORIZED.value(), HttpStatus.UNAUTHORIZED.getReasonPhrase(), "Invalid email or password");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+    }
 
     @ExceptionHandler(EmployeeEmailAlreadyExistsException.class)
     public ResponseEntity<ApiErrorResponse> handleEmployeeEmailAlreadyExists(EmployeeEmailAlreadyExistsException exception) {
